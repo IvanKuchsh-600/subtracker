@@ -35,6 +35,9 @@ func (a *App) Run() error {
 		Level: slog.LevelInfo,
 	}))
 
+	logger.Info("Starting application", "port", a.cfg.Server.Port)
+
+	// Подключение к БД
 	connStr := a.cfg.Database.ConnString()
 	subscrRepo, err := postgres.NewSubscriptionRepository(connStr, logger)
 	if err != nil {
@@ -42,16 +45,19 @@ func (a *App) Run() error {
 	}
 	logger.Info("Connected to database", "host", a.cfg.Database.Host, "dbname", a.cfg.Database.DBName)
 
+	// Инициализация usecase, handlers и router
 	subscrUsecase := subscription.NewService(subscrRepo, logger)
 	subscrHandler := handlers.NewSubscriptionHandler(subscrUsecase)
 	router := router.NewRouter(subscrHandler)
 
+	// HTTP сервер
 	srv := &http.Server{
 		Addr:        ":" + a.cfg.Server.Port,
 		Handler:     router,
 		ReadTimeout: 15 * time.Second,
 	}
 
+	// Graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -66,7 +72,8 @@ func (a *App) Run() error {
 		}
 	}()
 
-	// logger.Info("http server started", "addr", cfg.HTTPAddr)
+	// Запуск сервера
+	logger.Info("HTTP server started", "port", a.cfg.Server.Port)
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Error("listen and serve", "error", err)

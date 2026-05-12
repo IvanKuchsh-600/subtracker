@@ -1,0 +1,294 @@
+basePath: /api/v1
+definitions:
+  handlers.CreateSubscriptionRequest:
+    properties:
+      end_date:
+        example: 12-2026
+        type: string
+      price:
+        example: 400
+        minimum: 1
+        type: integer
+      service_name:
+        example: Yandex Plus
+        type: string
+      start_date:
+        example: 07-2025
+        type: string
+      user_id:
+        example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+        type: string
+    required:
+    - price
+    - service_name
+    - start_date
+    - user_id
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        example: something went wrong
+        type: string
+    type: object
+  handlers.NotFoundErrorResponse:
+    properties:
+      error:
+        example: subscription not found
+        type: string
+    type: object
+  handlers.SubscriptionResponse:
+    properties:
+      created_at:
+        example: "2026-05-11T10:00:00Z"
+        type: string
+      end_date:
+        example: 12-2026
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      price:
+        example: 400
+        type: integer
+      service_name:
+        example: Yandex Plus
+        type: string
+      start_date:
+        example: 07-2025
+        type: string
+      updated_at:
+        example: "2026-05-11T10:00:00Z"
+        type: string
+      user_id:
+        example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+        type: string
+    type: object
+  handlers.TotalCostResponse:
+    properties:
+      total_cost:
+        example: 1200
+        type: integer
+    type: object
+  handlers.UpdateSubscriptionRequest:
+    properties:
+      end_date:
+        example: 12-2026
+        type: string
+      price:
+        example: 799
+        type: integer
+      service_name:
+        example: Netflix
+        type: string
+      start_date:
+        example: 01-2025
+        type: string
+    type: object
+  handlers.ValidationErrorResponse:
+    properties:
+      error:
+        example: service_name is required
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST сервис для агрегации данных об онлайн подписках пользователей
+  termsOfService: http://swagger.io/terms/
+  title: SubTracker API
+  version: "1.0"
+paths:
+  /subscriptions:
+    get:
+      description: Возвращает список всех подписок в системе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список подписок
+          schema:
+            items:
+              $ref: '#/definitions/handlers.SubscriptionResponse'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Список всех подписок
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Добавляет новую подписку в систему
+      parameters:
+      - description: Данные подписки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Подписка создана
+          schema:
+            $ref: '#/definitions/handlers.SubscriptionResponse'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Создание новой подписки
+      tags:
+      - subscriptions
+  /subscriptions/{id}:
+    delete:
+      description: Удаляет подписку по ID
+      parameters:
+      - description: UUID подписки
+        example: '"550e8400-e29b-41d4-a716-446655440000"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Подписка удалена
+        "400":
+          description: Неверный ID
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
+        "404":
+          description: Подписка не найдена
+          schema:
+            $ref: '#/definitions/handlers.NotFoundErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Удаление подписки
+      tags:
+      - subscriptions
+    get:
+      description: Возвращает подписку по её уникальному идентификатору
+      parameters:
+      - description: UUID подписки
+        example: '"550e8400-e29b-41d4-a716-446655440000"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Подписка найдена
+          schema:
+            $ref: '#/definitions/handlers.SubscriptionResponse'
+        "400":
+          description: Неверный ID
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
+        "404":
+          description: Подписка не найдена
+          schema:
+            $ref: '#/definitions/handlers.NotFoundErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Получение подписки по ID
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Обновляет поля существующей подписки
+      parameters:
+      - description: UUID подписки
+        example: '"550e8400-e29b-41d4-a716-446655440000"'
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Подписка обновлена
+          schema:
+            $ref: '#/definitions/handlers.SubscriptionResponse'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
+        "404":
+          description: Подписка не найдена
+          schema:
+            $ref: '#/definitions/handlers.NotFoundErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Обновление подписки
+      tags:
+      - subscriptions
+  /subscriptions/total-cost:
+    get:
+      description: Рассчитывает суммарную стоимость подписок, активных в указанном
+        периоде
+      parameters:
+      - description: Дата начала (MM-YYYY)
+        example: '"01-2025"'
+        in: query
+        name: from_date
+        required: true
+        type: string
+      - description: Дата окончания (MM-YYYY)
+        example: '"12-2025"'
+        in: query
+        name: to_date
+        required: true
+        type: string
+      - description: ID пользователя (UUID)
+        example: '"60601fee-2bf1-4721-ae6f-7636e79a0cba"'
+        in: query
+        name: user_id
+        type: string
+      - description: Название сервиса
+        example: '"Yandex Plus"'
+        in: query
+        name: service_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Общая стоимость
+          schema:
+            $ref: '#/definitions/handlers.TotalCostResponse'
+        "400":
+          description: Неверные параметры
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Подсчёт стоимости подписок за период
+      tags:
+      - subscriptions
+swagger: "2.0"
